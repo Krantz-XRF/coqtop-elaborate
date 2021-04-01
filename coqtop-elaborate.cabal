@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 32c57ec5af1f3bc844c270d1e38945518ec26d61004cd357a116f5406385d5d7
+-- hash: 6b8f51dd8e67f2445e1b59083853aa1943a70c9317fc05904547d56753ea0bd8
 
 name:           coqtop-elaborate
 version:        0.1.0.0
@@ -27,13 +27,16 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      CoqTop
   other-modules:
       Paths_coqtop_elaborate
   hs-source-dirs:
       src
+  default-extensions: ConstraintKinds DataKinds TypeOperators RankNTypes DeriveFunctor DeriveFoldable DeriveGeneric DeriveLift DeriveAnyClass DeriveTraversable DerivingStrategies GeneralizedNewtypeDeriving StandaloneDeriving FlexibleContexts FlexibleInstances QuantifiedConstraints MultiParamTypeClasses FunctionalDependencies TypeApplications ScopedTypeVariables PatternSynonyms ViewPatterns LambdaCase TupleSections BangPatterns RecordWildCards BlockArguments
+  ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
+    , process
   default-language: Haskell2010
 
 executable coqtop-elaborate-exe
@@ -42,10 +45,12 @@ executable coqtop-elaborate-exe
       Paths_coqtop_elaborate
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-extensions: ConstraintKinds DataKinds TypeOperators RankNTypes DeriveFunctor DeriveFoldable DeriveGeneric DeriveLift DeriveAnyClass DeriveTraversable DerivingStrategies GeneralizedNewtypeDeriving StandaloneDeriving FlexibleContexts FlexibleInstances QuantifiedConstraints MultiParamTypeClasses FunctionalDependencies TypeApplications ScopedTypeVariables PatternSynonyms ViewPatterns LambdaCase TupleSections BangPatterns RecordWildCards BlockArguments
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base >=4.7 && <5
     , coqtop-elaborate
+    , process
   default-language: Haskell2010
 
 test-suite coqtop-elaborate-test
@@ -55,8 +60,10 @@ test-suite coqtop-elaborate-test
       Paths_coqtop_elaborate
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-extensions: ConstraintKinds DataKinds TypeOperators RankNTypes DeriveFunctor DeriveFoldable DeriveGeneric DeriveLift DeriveAnyClass DeriveTraversable DerivingStrategies GeneralizedNewtypeDeriving StandaloneDeriving FlexibleContexts FlexibleInstances QuantifiedConstraints MultiParamTypeClasses FunctionalDependencies TypeApplications ScopedTypeVariables PatternSynonyms ViewPatterns LambdaCase TupleSections BangPatterns RecordWildCards BlockArguments
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base >=4.7 && <5
     , coqtop-elaborate
+    , process
   default-language: Haskell2010
