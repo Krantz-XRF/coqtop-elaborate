@@ -9,11 +9,16 @@ import System.IO
 
 printCoqTopComment :: String -> IO ()
 printCoqTopComment s | all isSpace s = pure ()
-printCoqTopComment s = putStr $ unlines $ concat
-  [ [ "(** Coq Proof View" ]
-  , map (" * " ++) (lines s)
-  , [ " *)" ]
-  ]
+printCoqTopComment s | [x] <- lines s
+  = putStrLn ("(** " ++ x ++ " *)")
+printCoqTopComment s = putStrLn
+  ("(** [Coq Proof View]\n" ++ unlines view ++ " *)")
+  where isLine xs = not (all isSpace xs) && all (== '=') (dropWhile isSpace xs)
+        width = maximum $ map length $ filter (not . isLine) (lines s)
+        replaceLine xs
+          | isLine xs = "  " ++ replicate (width - 2) '='
+          | otherwise = xs
+        view = map ((" * " ++) . replaceLine) (lines s)
 
 main :: IO ()
 main = do
