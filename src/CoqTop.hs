@@ -1,20 +1,20 @@
 module CoqTop (coqtop) where
 
 import Control.Monad
-import Data.Bifunctor
+import Data.Char
 import Data.List
 import System.IO
 import System.Process
 
+import Language.Coq.Parser
+
 breakStatement :: String -> (String, String)
-breakStatement []         = error "Cannot break empty input."
-breakStatement ('.' : xs) = first ('.' :) (span (`elem` "\r\n") xs)
-breakStatement (x : xs)   = first (x :) (breakStatement xs)
+breakStatement = breakSentence
 
 breakStatements :: String -> [String]
-breakStatements = unfoldr \case
-  ""  -> Nothing
-  src -> Just (breakStatement src)
+breakStatements = unfoldr \src ->
+  if all isSpace src then Nothing
+  else Just (breakStatement src)
 
 procCoqtop :: CreateProcess
 procCoqtop = (proc "coqtop" [])
