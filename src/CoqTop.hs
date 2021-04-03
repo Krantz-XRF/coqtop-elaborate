@@ -8,13 +8,12 @@ import System.Process
 
 import Language.Coq.Parser
 
-breakStatement :: String -> (String, String)
-breakStatement = breakSentence
-
-breakStatements :: String -> [String]
-breakStatements = unfoldr \src ->
-  if all isSpace src then Nothing
-  else Just (breakStatement src)
+breakStatements :: String -> [(Bool, String)]
+breakStatements s = go (zeroPos, s) where
+  go = unfoldr \src ->
+    if all isSpace (snd src)
+      then Nothing
+      else Just (breakSentence src)
 
 procCoqtop :: CreateProcess
 procCoqtop = (proc "coqtop" [])
@@ -39,8 +38,8 @@ coqtop (breakStatements -> srcLines)
   = withCreateProcess procCoqtop
   \ ~(Just hin) ~(Just hout) ~(Just herr) _ -> do
   _ <- hGetLine hout
-  resLines <- forM srcLines \ss -> do
+  resLines <- forM srcLines \(ok, ss) -> do
     hPutStr hin ss; hFlush hin
-    _ <- hGetLine herr
-    unlines <$> while (hWaitForInput hout 0) (hGetLine hout)
-  pure (interleave (map Right resLines) (map Left srcLines))
+    when ok $ void $ hGetLine herr
+    unlines <$> while (hReady hout) (hGetLine hout)
+  pure (interleave (map Right resLines) (map (Left . snd) srcLines))

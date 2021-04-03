@@ -1,10 +1,11 @@
 module Language.Coq.Parser where
 
-import Control.Applicative hiding (optional)
+import Control.Applicative
 import Control.Monad
+import Data.Maybe
 import Language.Coq.Lexer
 
-import Text.Parsec hiding (many, (<|>))
+import Text.Parsec hiding (many, optional, (<|>))
 
 import Text.Parsec.Pos
 
@@ -35,12 +36,16 @@ sentencePart
 endOfSentence :: P
 endOfSentence = char '.' *> peekSat (`elem` " \n\r\t")
 
-breakSentence :: String -> (String, String)
-breakSentence s = splitAt n s where
-  sentencePos = spaces *> coqSentence *> getPosition
-  finalPos = case runParser sentencePos () "<INPUT>" s of
-    Right p -> p
-    Left e  -> error (show e)
-  sPos = scanl updatePosChar firstPos s
+zeroPos :: SourcePos
+zeroPos = initialPos "<INPUT>"
+
+breakSentence :: (SourcePos, String) -> ((Bool, String), (SourcePos, String))
+breakSentence (firstPos, s) = ((ok, this), (finalPos, rest)) where
+  (this, rest) = splitAt n s
   n = length (takeWhile (<= finalPos) sPos) - 1
-  firstPos = initialPos (sourceName finalPos)
+  sentencePos
+    = setPosition firstPos *> whiteSpace
+    *> ((,) <$> optSentence <*> getPosition)
+  optSentence = isJust <$> optional coqSentence
+  ~(Right (ok, finalPos)) = runParser sentencePos () "<INPUT>" s
+  sPos = scanl updatePosChar firstPos s

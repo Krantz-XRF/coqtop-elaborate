@@ -1,9 +1,11 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 module Language.Coq.Lexer where
 
-import Control.Applicative
 import Data.Char
 import Data.Functor
+
+import Control.Applicative hiding (optional)
+
 import Text.Parsec.Language
 
 import Text.Parsec hiding (many, (<|>))
@@ -31,7 +33,7 @@ unicodeIdPart = satisfyCat [DecimalNumber, LetterNumber, OtherNumber] <|> char '
 
 coqString :: P
 coqString = void (lexeme (char '"' <* many strPart <* char '"'))
-  where strPart = void (satisfy (/= '"')) <|> void (string "\"\"")
+  where strPart = void (satisfy (/= '"')) <|> void (try (string "\"\""))
 
 coqInteger :: P
 coqInteger = void (lexeme (some digit))
@@ -42,14 +44,15 @@ coqDef = emptyDef
   , P.commentEnd      = "*)"
   , P.identStart      = unicodeLetter
   , P.identLetter     = unicodeLetter <|> unicodeIdPart
-  , P.reservedOpNames = []
+  , P.reservedOpNames = [":"]
   , P.reservedNames   = ["Fail", "Time", "Redirect", "Timeout"]
   }
 
 bullets :: P
 bullets
     = void (lexeme (some (oneOf "-+*")))
-  <|> void (brackets identifier *> lexeme (char '{'))
+  <|> void (optional sel *> lexeme (char '{'))
   <|> void (lexeme (string "}"))
+  where sel = brackets identifier *> reservedOp ":"
 
 P.TokenParser {..} = P.makeTokenParser coqDef
