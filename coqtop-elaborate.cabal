@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 416164cda91eaf01cc0830dcc8224597fed617f2377727a89f113ef296f8522d
+-- hash: 64a1450e65e8490eb04f8f0856627b7700782d5327791c0d8fc9491edad7e474
 
 name:           coqtop-elaborate
 version:        0.1.0.0
@@ -13,9 +13,8 @@ homepage:       https://github.com/Krantz-XRF/coqtop-elaborate#readme
 bug-reports:    https://github.com/Krantz-XRF/coqtop-elaborate/issues
 author:         Xie Ruifeng
 maintainer:     krantz.xrf@outlook.com
-copyright:      AGPL-3.0
-license:        BSD3
-license-file:   LICENSE
+license:        AGPL-3
+license-file:   COPYING.md
 build-type:     Simple
 extra-source-files:
     README.md
@@ -35,7 +34,7 @@ library
   hs-source-dirs:
       src
   default-extensions: ConstraintKinds DataKinds TypeOperators RankNTypes DeriveFunctor DeriveFoldable DeriveGeneric DeriveLift DeriveAnyClass DeriveTraversable DerivingStrategies GeneralizedNewtypeDeriving StandaloneDeriving FlexibleContexts FlexibleInstances QuantifiedConstraints MultiParamTypeClasses FunctionalDependencies TypeApplications ScopedTypeVariables PatternSynonyms ViewPatterns LambdaCase TupleSections BangPatterns RecordWildCards BlockArguments
-  ghc-options: -Wall
+  ghc-options: -Wall -O
   build-depends:
       base >=4.7 && <5
     , parsec
@@ -50,7 +49,7 @@ executable coqtop-elaborate-exe
   hs-source-dirs:
       app
   default-extensions: ConstraintKinds DataKinds TypeOperators RankNTypes DeriveFunctor DeriveFoldable DeriveGeneric DeriveLift DeriveAnyClass DeriveTraversable DerivingStrategies GeneralizedNewtypeDeriving StandaloneDeriving FlexibleContexts FlexibleInstances QuantifiedConstraints MultiParamTypeClasses FunctionalDependencies TypeApplications ScopedTypeVariables PatternSynonyms ViewPatterns LambdaCase TupleSections BangPatterns RecordWildCards BlockArguments
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -O
   build-depends:
       base >=4.7 && <5
     , coqtop-elaborate

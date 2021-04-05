@@ -2,9 +2,9 @@ name:                coqtop-elaborate
 version:             0.1.0.0
 github:              "Krantz-XRF/coqtop-elaborate"
 license:             AGPL-3
+license-file:        COPYING.md
 author:              "Xie Ruifeng"
 maintainer:          "krantz.xrf@outlook.com"
-copyright:           "AGPL-3.0"
 
 extra-source-files:
 - README.md
@@ -64,9 +64,10 @@ library:
   source-dirs: src
   ghc-options:
   - -Wall
+  - -O
 
 executables:
-  coqtop-elaborate-exe:
+  coqtop-elaborate-cli:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -74,6 +75,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     - -Wall
+    - -O
     dependencies:
     - coqtop-elaborate
 
