@@ -5,7 +5,7 @@
 ![build](https://github.com/Krantz-XRF/coqtop-elaborate/workflows/build/badge.svg)
 [![docs](https://img.shields.io/badge/Doc-GitHub%20Pages-brightgreen)](https://krantz-xrf.github.io/coqtop-elaborate/)
 
-Elaborate Coq code with coqtop output.
+Elaborate Coq source code with coqtop output.
 
 ## Demo
 
