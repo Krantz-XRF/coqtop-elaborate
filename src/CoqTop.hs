@@ -46,7 +46,7 @@ coqtop (breakStatements -> srcLines) = do
   (hout, hout_write) <- createPipe
   hSetBuffering hout_write NoBuffering
   hSetNewlineMode hout universalNewlineMode
-  (~(Just hin), ~Nothing, ~Nothing, _)
+  (~(Just hin), ~Nothing, ~Nothing, hp)
     <- createProcess_ "coqtop" (procCoqtop hout_write)
   expectWelcome hout
   expectPrompt_ hout
@@ -56,4 +56,5 @@ coqtop (breakStatements -> srcLines) = do
     hPutStr hin ssLine; hFlush hin
     prompt <- replicateM n (expectPrompt hout)
     pure (trim (concatMap (unlines . init . lines) prompt))
+  cleanupProcess (Just hin, Nothing, Nothing, hp)
   pure (interleave (map Left srcLines) (map Right resLines))
