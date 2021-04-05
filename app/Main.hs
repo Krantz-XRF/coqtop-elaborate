@@ -3,6 +3,7 @@ module Main where
 import Control.Monad
 import CoqTop
 import Data.Char
+import Main.Utf8
 import System.Environment
 import System.Exit
 import System.IO
@@ -21,7 +22,7 @@ printCoqTopComment s = putStrLn
         view = map ((" * " ++) . replaceLine) (lines s)
 
 main :: IO ()
-main = do
+main = withUtf8 do
   args <- getArgs
   when (null args) do
     prog <- getProgName

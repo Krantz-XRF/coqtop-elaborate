@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f543b10ab207e5e1002b074759c60f845564adb5679e978ecddefae07d6b927d
+-- hash: 416164cda91eaf01cc0830dcc8224597fed617f2377727a89f113ef296f8522d
 
 name:           coqtop-elaborate
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
       base >=4.7 && <5
     , parsec
     , process
+    , with-utf8
   default-language: Haskell2010
 
 executable coqtop-elaborate-exe
@@ -55,6 +56,7 @@ executable coqtop-elaborate-exe
     , coqtop-elaborate
     , parsec
     , process
+    , with-utf8
   default-language: Haskell2010
 
 test-suite coqtop-elaborate-test
@@ -71,4 +73,5 @@ test-suite coqtop-elaborate-test
     , coqtop-elaborate
     , parsec
     , process
+    , with-utf8
   default-language: Haskell2010

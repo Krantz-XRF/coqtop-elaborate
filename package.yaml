@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - process
 - parsec
+- with-utf8
 
 default-extensions:
 # Type level goodies
