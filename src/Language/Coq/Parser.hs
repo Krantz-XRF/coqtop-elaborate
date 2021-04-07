@@ -23,11 +23,11 @@ vernacControl
 coqSentence :: P
 coqSentence
     = optional vernacControl *> bullets
-  <|> some sentencePart *> endOfSentence
+  <|> some (lexeme sentencePart) `sepBy1` semi *> endOfSentence
 
 sentencePart :: P
 sentencePart
-    = void (noneOf ".\"")
+    = void (noneOf ";.\"")
   <|> coqString
   <|> void (try (string ".."))
   <|> void (try (char '.' *> satisfy (`notElem` " \n\r\t")))

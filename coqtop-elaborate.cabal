@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 64a1450e65e8490eb04f8f0856627b7700782d5327791c0d8fc9491edad7e474
+-- hash: ab00a69e81f1ec2cf601cb0d8640365ee7fb2076e2a7738c0619c4de627c2a4d
 
 name:           coqtop-elaborate
 version:        0.1.0.0
@@ -42,7 +42,7 @@ library
     , with-utf8
   default-language: Haskell2010
 
-executable coqtop-elaborate-exe
+executable coqtop-elaborate-cli
   main-is: Main.hs
   other-modules:
       Paths_coqtop_elaborate
