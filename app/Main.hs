@@ -64,7 +64,7 @@ showCoqTopComment s = "(** [Coq Proof View]\n" ++ unlines view ++ " *)"
         view = map ((" * " ++) . replaceLine) (lines s)
 
 helpHeader :: String -> String
-helpHeader prog = "usage: " ++ prog ++ " [-i] <file> [-o <file>]\n\nOptions:"
+helpHeader prog = "usage: " ++ prog ++ " [-i] <file> [-o <file>] -- <coqtop-arguments>\n\nOptions:"
 
 description :: String
 description = unlines
@@ -80,7 +80,7 @@ withFileOr file m _ p = withFile file m p
 
 main :: IO ()
 main = withUtf8 do
-  args <- getArgs
+  (args, drop 1 -> coqtopArgs) <- break (== "--") <$> getArgs
   let (rawFlags, ~[], errors) = getOpt (ReturnInOrder Input) options args
   Flags{..} <- makeFlags rawFlags
   when (not (null errors) || showHelp) do
@@ -89,7 +89,7 @@ main = withUtf8 do
   when showVersion (putStrLn description)
   withFile inputFile ReadMode \fileIn ->
     withFileOr outputFile WriteMode stdout \fileOut -> do
-      res <- coqtop =<< hGetContents fileIn
+      res <- coqtop coqtopArgs =<< hGetContents fileIn
       forM_ res \case
         Left s  -> hPutStr fileOut s
         Right s -> hPutStrLn fileOut (showCoqTopComment s)

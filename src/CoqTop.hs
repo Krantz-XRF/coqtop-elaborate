@@ -15,8 +15,8 @@ breakStatements s = go (zeroPos, s) where
       then Nothing
       else Just (breakSentence src)
 
-procCoqtop :: Handle -> CreateProcess
-procCoqtop h = (proc "coqtop" [])
+procCoqtop :: [String] -> Handle -> CreateProcess
+procCoqtop args h = (proc "coqtop" args)
   { std_in = CreatePipe
   , std_out = UseHandle h
   , std_err = UseHandle h
@@ -41,13 +41,13 @@ expectPrompt_ = void . expectPrompt
 trim :: String -> String
 trim = dropWhile isSpace . reverse . dropWhile isSpace . reverse
 
-coqtop :: String -> IO [Either String String]
-coqtop (breakStatements -> srcLines) = do
+coqtop :: [String] -> String -> IO [Either String String]
+coqtop args (breakStatements -> srcLines) = do
   (hout, hout_write) <- createPipe
   hSetBuffering hout_write NoBuffering
   hSetNewlineMode hout universalNewlineMode
   (~(Just hin), ~Nothing, ~Nothing, hp)
-    <- createProcess_ "coqtop" (procCoqtop hout_write)
+    <- createProcess_ "coqtop" (procCoqtop args hout_write)
   expectWelcome hout
   expectPrompt_ hout
   resLines <- forM srcLines \ss -> do
