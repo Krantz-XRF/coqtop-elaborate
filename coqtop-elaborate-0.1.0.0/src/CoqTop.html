@@ -1,0 +1,270 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">CoqTop</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="CoqTop.html#coqtop"><span class="hs-identifier">coqtop</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Process</span></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.Coq.Parser.html"><span class="hs-identifier">Language.Coq.Parser</span></a></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="annot"><a href="CoqTop.html#breakStatements"><span class="hs-identifier hs-type">breakStatements</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-12"></span><span id="breakStatements"><span class="annot"><span class="annottext">breakStatements :: String -&gt; [String]
+</span><a href="CoqTop.html#breakStatements"><span class="hs-identifier hs-var hs-var">breakStatements</span></a></span></span><span> </span><span id="local-6989586621679044336"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044336"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(SourcePos, String) -&gt; [String]
+</span><a href="#local-6989586621679044335"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SourcePos
+</span><a href="Language.Coq.Parser.html#zeroPos"><span class="hs-identifier hs-var">zeroPos</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044336"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-13"></span><span>  </span><span id="local-6989586621679044335"><span class="annot"><span class="annottext">go :: (SourcePos, String) -&gt; [String]
+</span><a href="#local-6989586621679044335"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">((SourcePos, String) -&gt; Maybe (String, (SourcePos, String)))
+-&gt; (SourcePos, String) -&gt; [String]
+forall b a. (b -&gt; Maybe (a, b)) -&gt; b -&gt; [a]
+</span><span class="hs-identifier hs-var">unfoldr</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679044332"><span class="annot"><span class="annottext">(SourcePos, String)
+</span><a href="#local-6989586621679044332"><span class="hs-identifier hs-var">src</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-14"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(SourcePos, String) -&gt; String
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(SourcePos, String)
+</span><a href="#local-6989586621679044332"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span>      </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Maybe (String, (SourcePos, String))
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-16"></span><span>      </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">(String, (SourcePos, String))
+-&gt; Maybe (String, (SourcePos, String))
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(SourcePos, String) -&gt; (String, (SourcePos, String))
+</span><a href="Language.Coq.Parser.html#breakSentence"><span class="hs-identifier hs-var">breakSentence</span></a></span><span> </span><span class="annot"><span class="annottext">(SourcePos, String)
+</span><a href="#local-6989586621679044332"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="annot"><a href="CoqTop.html#procCoqtop"><span class="hs-identifier hs-type">procCoqtop</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">CreateProcess</span></span><span>
+</span><span id="line-19"></span><span id="procCoqtop"><span class="annot"><span class="annottext">procCoqtop :: [String] -&gt; Handle -&gt; CreateProcess
+</span><a href="CoqTop.html#procCoqtop"><span class="hs-identifier hs-var hs-var">procCoqtop</span></a></span></span><span> </span><span id="local-6989586621679044327"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044327"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span id="local-6989586621679044326"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044326"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; CreateProcess
+</span><span class="hs-identifier hs-var">proc</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;coqtop&quot;</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044327"><span class="hs-identifier hs-var">args</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">std_in :: StdStream
+</span><span class="hs-identifier hs-var">std_in</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">StdStream
+</span><span class="hs-identifier hs-var">CreatePipe</span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">std_out :: StdStream
+</span><span class="hs-identifier hs-var">std_out</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; StdStream
+</span><span class="hs-identifier hs-var">UseHandle</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044326"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">std_err :: StdStream
+</span><span class="hs-identifier hs-var">std_err</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; StdStream
+</span><span class="hs-identifier hs-var">UseHandle</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044326"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">delegate_ctlc :: Bool
+</span><span class="hs-identifier hs-var">delegate_ctlc</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span id="local-6989586621679044369"><span class="annot"><a href="CoqTop.html#interleave"><span class="hs-identifier hs-type">interleave</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679044369"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679044369"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679044369"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-27"></span><span id="interleave"><span class="annot"><span class="annottext">interleave :: [a] -&gt; [a] -&gt; [a]
+</span><a href="CoqTop.html#interleave"><span class="hs-identifier hs-var hs-var">interleave</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>     </span><span id="local-6989586621679044317"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679044317"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679044317"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-28"></span><span class="annot"><a href="CoqTop.html#interleave"><span class="hs-identifier hs-var">interleave</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679044316"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679044316"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679044315"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679044315"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679044314"><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679044314"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679044316"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; [a]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[a] -&gt; [a] -&gt; [a]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="CoqTop.html#interleave"><span class="hs-identifier hs-var">interleave</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679044314"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="annot"><span class="annottext">[a]
+</span><a href="#local-6989586621679044315"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="annot"><a href="CoqTop.html#expectWelcome"><span class="hs-identifier hs-type">expectWelcome</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span id="expectWelcome"><span class="annot"><span class="annottext">expectWelcome :: Handle -&gt; IO ()
+</span><a href="CoqTop.html#expectWelcome"><span class="hs-identifier hs-var hs-var">expectWelcome</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO String -&gt; IO ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(IO String -&gt; IO ()) -&gt; (Handle -&gt; IO String) -&gt; Handle -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO String
+</span><span class="hs-identifier hs-var">hGetLine</span></span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="annot"><a href="CoqTop.html#expectPrompt"><span class="hs-identifier hs-type">expectPrompt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-34"></span><span id="expectPrompt"><span class="annot"><span class="annottext">expectPrompt :: Handle -&gt; IO String
+</span><a href="CoqTop.html#expectPrompt"><span class="hs-identifier hs-var hs-var">expectPrompt</span></a></span></span><span> </span><span id="local-6989586621679044308"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044308"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><a href="#local-6989586621679044307"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-35"></span><span>  </span><span id="local-6989586621679044307"><span class="annot"><span class="annottext">go :: String -&gt; IO String
+</span><a href="#local-6989586621679044307"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span id="local-6989586621679044306"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044306"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; &lt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Bool
+</span><span class="hs-operator hs-var">`isPrefixOf`</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044306"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">reverse</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044306"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>        </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679044303"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679044303"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO Char
+</span><span class="hs-identifier hs-var">hGetChar</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044308"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><a href="#local-6989586621679044307"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679044303"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; String
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044306"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="annot"><a href="CoqTop.html#expectPrompt_"><span class="hs-identifier hs-type">expectPrompt_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span id="expectPrompt_"><span class="annot"><span class="annottext">expectPrompt_ :: Handle -&gt; IO ()
+</span><a href="CoqTop.html#expectPrompt_"><span class="hs-identifier hs-var hs-var">expectPrompt_</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO String -&gt; IO ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(IO String -&gt; IO ()) -&gt; (Handle -&gt; IO String) -&gt; Handle -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO String
+</span><a href="CoqTop.html#expectPrompt"><span class="hs-identifier hs-var">expectPrompt</span></a></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="annot"><a href="CoqTop.html#trim"><span class="hs-identifier hs-type">trim</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-42"></span><span id="trim"><span class="annot"><span class="annottext">trim :: String -&gt; String
+</span><a href="CoqTop.html#trim"><span class="hs-identifier hs-var hs-var">trim</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; String
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">dropWhile</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (String -&gt; String) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">reverse</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (String -&gt; String) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; String
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">dropWhile</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (String -&gt; String) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">reverse</span></span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="annot"><a href="CoqTop.html#coqtop"><span class="hs-identifier hs-type">coqtop</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-45"></span><span id="coqtop"><span class="annot"><span class="annottext">coqtop :: [String] -&gt; String -&gt; IO [Either String String]
+</span><a href="CoqTop.html#coqtop"><span class="hs-identifier hs-var hs-var">coqtop</span></a></span></span><span> </span><span id="local-6989586621679044298"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044298"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><a href="CoqTop.html#breakStatements"><span class="hs-identifier hs-var">breakStatements</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679044297"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044297"><span class="hs-identifier hs-var">srcLines</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679044296"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044296"><span class="hs-identifier hs-var">hout</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679044295"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044295"><span class="hs-identifier hs-var">hout_write</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO (Handle, Handle)
+</span><span class="hs-identifier hs-var">createPipe</span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="annot"><span class="annottext">Handle -&gt; BufferMode -&gt; IO ()
+</span><span class="hs-identifier hs-var">hSetBuffering</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044295"><span class="hs-identifier hs-var">hout_write</span></a></span><span> </span><span class="annot"><span class="annottext">BufferMode
+</span><span class="hs-identifier hs-var">NoBuffering</span></span><span>
+</span><span id="line-48"></span><span>  </span><span class="annot"><span class="annottext">Handle -&gt; NewlineMode -&gt; IO ()
+</span><span class="hs-identifier hs-var">hSetNewlineMode</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044296"><span class="hs-identifier hs-var">hout</span></a></span><span> </span><span class="annot"><span class="annottext">NewlineMode
+</span><span class="hs-identifier hs-var">universalNewlineMode</span></span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">(</span><span class="hs-glyph">~</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679044289"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044289"><span class="hs-identifier hs-var">hin</span></a></span></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-glyph">~</span><span class="annot"><span class="annottext">Maybe Handle
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span> </span><span class="hs-glyph">~</span><span class="annot"><span class="annottext">Maybe Handle
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679044288"><span class="annot"><span class="annottext">ProcessHandle
+</span><a href="#local-6989586621679044288"><span class="hs-identifier hs-var">hp</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>    </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String
+-&gt; CreateProcess
+-&gt; IO (Maybe Handle, Maybe Handle, Maybe Handle, ProcessHandle)
+</span><span class="hs-identifier hs-var">createProcess_</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;coqtop&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; Handle -&gt; CreateProcess
+</span><a href="CoqTop.html#procCoqtop"><span class="hs-identifier hs-var">procCoqtop</span></a></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044298"><span class="hs-identifier hs-var">args</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044295"><span class="hs-identifier hs-var">hout_write</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>  </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><a href="CoqTop.html#expectWelcome"><span class="hs-identifier hs-var">expectWelcome</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044296"><span class="hs-identifier hs-var">hout</span></a></span><span>
+</span><span id="line-52"></span><span>  </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><a href="CoqTop.html#expectPrompt_"><span class="hs-identifier hs-var">expectPrompt_</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044296"><span class="hs-identifier hs-var">hout</span></a></span><span>
+</span><span id="line-53"></span><span>  </span><span id="local-6989586621679044286"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044286"><span class="hs-identifier hs-var">resLines</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; (String -&gt; IO String) -&gt; IO [String]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m (t b)
+</span><span class="hs-identifier hs-var">forM</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044297"><span class="hs-identifier hs-var">srcLines</span></a></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679044284"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044284"><span class="hs-identifier hs-var">ss</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-54"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679044283"><span class="annot"><span class="annottext">ssLine :: String
+</span><a href="#local-6989586621679044283"><span class="hs-identifier hs-var hs-var">ssLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">String -&gt; Char
+forall a. [a] -&gt; a
+</span><span class="hs-identifier hs-var">last</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044284"><span class="hs-identifier hs-var">ss</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044284"><span class="hs-identifier hs-var">ss</span></a></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044284"><span class="hs-identifier hs-var">ss</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679044281"><span class="annot"><span class="annottext">n :: Int
+</span><a href="#local-6989586621679044281"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><span class="hs-identifier hs-var">lines</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044283"><span class="hs-identifier hs-var">ssLine</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; String -&gt; IO ()
+</span><span class="hs-identifier hs-var">hPutStr</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044289"><span class="hs-identifier hs-var">hin</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679044283"><span class="hs-identifier hs-var">ssLine</span></a></span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><span class="hs-identifier hs-var">hFlush</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044289"><span class="hs-identifier hs-var">hin</span></a></span><span>
+</span><span id="line-57"></span><span>    </span><span id="local-6989586621679044276"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044276"><span class="hs-identifier hs-var">prompt</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Int -&gt; IO String -&gt; IO [String]
+forall (m :: * -&gt; *) a. Applicative m =&gt; Int -&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">replicateM</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679044281"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Handle -&gt; IO String
+</span><a href="CoqTop.html#expectPrompt"><span class="hs-identifier hs-var">expectPrompt</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044296"><span class="hs-identifier hs-var">hout</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span>    </span><span class="annot"><span class="annottext">String -&gt; IO String
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="CoqTop.html#trim"><span class="hs-identifier hs-var">trim</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; [String] -&gt; String
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><span class="hs-identifier hs-var">concatMap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><span class="hs-identifier hs-var">unlines</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; (String -&gt; [String]) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String]
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">init</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; [String])
+-&gt; (String -&gt; [String]) -&gt; String -&gt; [String]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><span class="hs-identifier hs-var">lines</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044276"><span class="hs-identifier hs-var">prompt</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>  </span><span class="annot"><span class="annottext">(Maybe Handle, Maybe Handle, Maybe Handle, ProcessHandle) -&gt; IO ()
+</span><span class="hs-identifier hs-var">cleanupProcess</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Handle -&gt; Maybe Handle
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679044289"><span class="hs-identifier hs-var">hin</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe Handle
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ProcessHandle
+</span><a href="#local-6989586621679044288"><span class="hs-identifier hs-var">hp</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span>  </span><span class="annot"><span class="annottext">[Either String String] -&gt; IO [Either String String]
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Either String String]
+-&gt; [Either String String] -&gt; [Either String String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><a href="CoqTop.html#interleave"><span class="hs-identifier hs-var">interleave</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String -&gt; Either String String)
+-&gt; [String] -&gt; [Either String String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String String
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044297"><span class="hs-identifier hs-var">srcLines</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String -&gt; Either String String)
+-&gt; [String] -&gt; [Either String String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String String
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679044286"><span class="hs-identifier hs-var">resLines</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span></pre></body></html>

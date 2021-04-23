@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.Coq.Parser</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html"><span class="hs-identifier">Language.Coq.Lexer</span></a></span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Parsec</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">many</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">optional</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(&lt;|&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Parsec.Pos</span></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="annot"><a href="Language.Coq.Parser.html#peekSat"><span class="hs-identifier hs-type">peekSat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#P"><span class="hs-identifier hs-type">P</span></a></span><span>
+</span><span id="line-12"></span><span id="peekSat"><span class="annot"><span class="annottext">peekSat :: (Char -&gt; Bool) -&gt; P
+</span><a href="Language.Coq.Parser.html#peekSat"><span class="hs-identifier hs-var hs-var">peekSat</span></a></span></span><span> </span><span id="local-6989586621679044176"><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="#local-6989586621679044176"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity [Char]
+forall (m :: * -&gt; *) s u. Monad m =&gt; ParsecT s u m s
+</span><span class="hs-identifier hs-var">getInput</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity [Char]
+-&gt; ([Char] -&gt; ParsecT [Char] st Identity ())
+-&gt; ParsecT [Char] st Identity ()
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-13"></span><span>  </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&quot;</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; ParsecT [Char] st Identity ()
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679044174"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679044174"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+-&gt; ParsecT [Char] st Identity () -&gt; ParsecT [Char] st Identity ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><span class="hs-identifier hs-var">unless</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="#local-6989586621679044176"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679044174"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity ()
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a
+</span><span class="hs-identifier hs-var">mzero</span></span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="annot"><a href="Language.Coq.Parser.html#vernacControl"><span class="hs-identifier hs-type">vernacControl</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#P"><span class="hs-identifier hs-type">P</span></a></span><span>
+</span><span id="line-17"></span><span id="vernacControl"><span class="annot"><span class="annottext">vernacControl :: Parsec [Char] st ()
+</span><a href="Language.Coq.Parser.html#vernacControl"><span class="hs-identifier hs-var hs-var">vernacControl</span></a></span></span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Parsec [Char] st ()
+forall u. [Char] -&gt; ParsecT [Char] u Identity ()
+</span><a href="Language.Coq.Lexer.html#reserved"><span class="hs-identifier hs-var">reserved</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;Fail&quot;</span></span><span>
+</span><span id="line-19"></span><span>  </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Parsec [Char] st ()
+forall u. [Char] -&gt; ParsecT [Char] u Identity ()
+</span><a href="Language.Coq.Lexer.html#reserved"><span class="hs-identifier hs-var">reserved</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;Time&quot;</span></span><span>
+</span><span id="line-20"></span><span>  </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Parsec [Char] st ()
+forall u. [Char] -&gt; ParsecT [Char] u Identity ()
+</span><a href="Language.Coq.Lexer.html#reserved"><span class="hs-identifier hs-var">reserved</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;Redirect&quot;</span></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st ()
+P
+</span><a href="Language.Coq.Lexer.html#coqString"><span class="hs-identifier hs-var">coqString</span></a></span><span>
+</span><span id="line-21"></span><span>  </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; Parsec [Char] st ()
+forall u. [Char] -&gt; ParsecT [Char] u Identity ()
+</span><a href="Language.Coq.Lexer.html#reserved"><span class="hs-identifier hs-var">reserved</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;Timeout&quot;</span></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st ()
+P
+</span><a href="Language.Coq.Lexer.html#coqInteger"><span class="hs-identifier hs-var">coqInteger</span></a></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="annot"><a href="Language.Coq.Parser.html#coqSentence"><span class="hs-identifier hs-type">coqSentence</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#P"><span class="hs-identifier hs-type">P</span></a></span><span>
+</span><span id="line-24"></span><span id="coqSentence"><span class="annot"><span class="annottext">coqSentence :: Parsec [Char] st ()
+</span><a href="Language.Coq.Parser.html#coqSentence"><span class="hs-identifier hs-var hs-var">coqSentence</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; ParsecT [Char] st Identity (Maybe ())
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st ()
+P
+</span><a href="Language.Coq.Parser.html#vernacControl"><span class="hs-identifier hs-var">vernacControl</span></a></span><span>
+</span><span id="line-25"></span><span>  </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity (Maybe ())
+-&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parsec [Char] st ()
+P
+</span><a href="Language.Coq.Lexer.html#bullets"><span class="hs-identifier hs-var">bullets</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; ParsecT [Char] st Identity [()]
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
+</span><span class="hs-identifier hs-var">some</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall u a.
+ParsecT [Char] u Identity a -&gt; ParsecT [Char] u Identity a
+</span><a href="Language.Coq.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st ()
+P
+</span><a href="Language.Coq.Parser.html#sentencePart"><span class="hs-identifier hs-var">sentencePart</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity [()]
+-&gt; ParsecT [Char] st Identity [Char]
+-&gt; ParsecT [Char] st Identity [[()]]
+forall s (m :: * -&gt; *) t u a sep.
+Stream s m t =&gt;
+ParsecT s u m a -&gt; ParsecT s u m sep -&gt; ParsecT s u m [a]
+</span><span class="hs-operator hs-var">`sepBy1`</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity [Char]
+forall u. ParsecT [Char] u Identity [Char]
+</span><a href="Language.Coq.Lexer.html#semi"><span class="hs-identifier hs-var">semi</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity [[()]]
+-&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st ()
+P
+</span><a href="Language.Coq.Parser.html#endOfSentence"><span class="hs-identifier hs-var">endOfSentence</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="annot"><a href="Language.Coq.Parser.html#sentencePart"><span class="hs-identifier hs-type">sentencePart</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#P"><span class="hs-identifier hs-type">P</span></a></span><span>
+</span><span id="line-28"></span><span id="sentencePart"><span class="annot"><span class="annottext">sentencePart :: Parsec [Char] st ()
+</span><a href="Language.Coq.Parser.html#sentencePart"><span class="hs-identifier hs-var hs-var">sentencePart</span></a></span></span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity Char -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; ParsecT [Char] st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+[Char] -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">noneOf</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;;.\&quot;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span>  </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] st ()
+P
+</span><a href="Language.Coq.Lexer.html#coqString"><span class="hs-identifier hs-var">coqString</span></a></span><span>
+</span><span id="line-31"></span><span>  </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity [Char] -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT [Char] st Identity [Char]
+-&gt; ParsecT [Char] st Identity [Char]
+forall s u (m :: * -&gt; *) a. ParsecT s u m a -&gt; ParsecT s u m a
+</span><span class="hs-identifier hs-var">try</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; ParsecT [Char] st Identity [Char]
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+[Char] -&gt; ParsecT s u m [Char]
+</span><span class="hs-identifier hs-var">string</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;..&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>  </span><span class="annot"><span class="annottext">Parsec [Char] st () -&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity Char -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT [Char] st Identity Char -&gt; ParsecT [Char] st Identity Char
+forall s u (m :: * -&gt; *) a. ParsecT s u m a -&gt; ParsecT s u m a
+</span><span class="hs-identifier hs-var">try</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; ParsecT [Char] st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+Char -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity Char
+-&gt; ParsecT [Char] st Identity Char
+-&gt; ParsecT [Char] st Identity Char
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; ParsecT [Char] st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+(Char -&gt; Bool) -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">satisfy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; [Char] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`notElem`</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot; \n\r\t&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="annot"><a href="Language.Coq.Parser.html#endOfSentence"><span class="hs-identifier hs-type">endOfSentence</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#P"><span class="hs-identifier hs-type">P</span></a></span><span>
+</span><span id="line-35"></span><span id="endOfSentence"><span class="annot"><span class="annottext">endOfSentence :: Parsec [Char] st ()
+</span><a href="Language.Coq.Parser.html#endOfSentence"><span class="hs-identifier hs-var hs-var">endOfSentence</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; ParsecT [Char] st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+Char -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] st Identity Char
+-&gt; Parsec [Char] st () -&gt; Parsec [Char] st ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; P
+</span><a href="Language.Coq.Parser.html#peekSat"><span class="hs-identifier hs-var">peekSat</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; [Char] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot; \n\r\t&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="annot"><a href="Language.Coq.Parser.html#zeroPos"><span class="hs-identifier hs-type">zeroPos</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SourcePos</span></span><span>
+</span><span id="line-38"></span><span id="zeroPos"><span class="annot"><span class="annottext">zeroPos :: SourcePos
+</span><a href="Language.Coq.Parser.html#zeroPos"><span class="hs-identifier hs-var hs-var">zeroPos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; SourcePos
+</span><span class="hs-identifier hs-var">initialPos</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&lt;INPUT&gt;&quot;</span></span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Language.Coq.Parser.html#breakSentence"><span class="hs-identifier hs-type">breakSentence</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">SourcePos</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">SourcePos</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span id="breakSentence"><span class="annot"><span class="annottext">breakSentence :: (SourcePos, [Char]) -&gt; ([Char], (SourcePos, [Char]))
+</span><a href="Language.Coq.Parser.html#breakSentence"><span class="hs-identifier hs-var hs-var">breakSentence</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679044144"><span class="annot"><span class="annottext">SourcePos
+</span><a href="#local-6989586621679044144"><span class="hs-identifier hs-var">firstPos</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679044143"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679044143"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679044142"><span class="hs-identifier hs-var">this</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SourcePos
+</span><a href="#local-6989586621679044141"><span class="hs-identifier hs-var">finalPos</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679044140"><span class="hs-identifier hs-var">rest</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">(</span><span id="local-6989586621679044142"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679044142"><span class="hs-identifier hs-var">this</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679044140"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679044140"><span class="hs-identifier hs-var">rest</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Char] -&gt; ([Char], [Char])
+forall a. Int -&gt; [a] -&gt; ([a], [a])
+</span><span class="hs-identifier hs-var">splitAt</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679044138"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679044143"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-43"></span><span>  </span><span id="local-6989586621679044138"><span class="annot"><span class="annottext">n :: Int
+</span><a href="#local-6989586621679044138"><span class="hs-identifier hs-var hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[SourcePos] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(SourcePos -&gt; Bool) -&gt; [SourcePos] -&gt; [SourcePos]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">takeWhile</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SourcePos -&gt; SourcePos -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">SourcePos
+</span><a href="#local-6989586621679044141"><span class="hs-identifier hs-var">finalPos</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[SourcePos]
+</span><a href="#local-6989586621679044134"><span class="hs-identifier hs-var">sPos</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-44"></span><span>  </span><span id="local-6989586621679044133"><span class="annot"><span class="annottext">sentencePos :: ParsecT [Char] u Identity SourcePos
+</span><a href="#local-6989586621679044133"><span class="hs-identifier hs-var hs-var">sentencePos</span></a></span></span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SourcePos -&gt; ParsecT [Char] u Identity ()
+forall (m :: * -&gt; *) s u. Monad m =&gt; SourcePos -&gt; ParsecT s u m ()
+</span><span class="hs-identifier hs-var">setPosition</span></span><span> </span><span class="annot"><span class="annottext">SourcePos
+</span><a href="#local-6989586621679044144"><span class="hs-identifier hs-var">firstPos</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity ()
+-&gt; ParsecT [Char] u Identity () -&gt; ParsecT [Char] u Identity ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity ()
+P
+</span><a href="Language.Coq.Lexer.html#whiteSpace"><span class="hs-identifier hs-var">whiteSpace</span></a></span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity ()
+-&gt; ParsecT [Char] u Identity (Maybe ())
+-&gt; ParsecT [Char] u Identity (Maybe ())
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity ()
+-&gt; ParsecT [Char] u Identity (Maybe ())
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity ()
+P
+</span><a href="Language.Coq.Parser.html#coqSentence"><span class="hs-identifier hs-var">coqSentence</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity (Maybe ())
+-&gt; ParsecT [Char] u Identity (Maybe Char)
+-&gt; ParsecT [Char] u Identity (Maybe Char)
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity Char
+-&gt; ParsecT [Char] u Identity (Maybe Char)
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f (Maybe a)
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity Char
+forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">newline</span></span><span>
+</span><span id="line-47"></span><span>    </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity (Maybe Char)
+-&gt; ParsecT [Char] u Identity SourcePos
+-&gt; ParsecT [Char] u Identity SourcePos
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT [Char] u Identity SourcePos
+forall (m :: * -&gt; *) s u. Monad m =&gt; ParsecT s u m SourcePos
+</span><span class="hs-identifier hs-var">getPosition</span></span><span>
+</span><span id="line-48"></span><span>  </span><span id="local-6989586621679044141"><span class="annot"><span class="annottext">finalPos :: SourcePos
+</span><a href="#local-6989586621679044141"><span class="hs-identifier hs-var hs-var">finalPos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Parsec [Char] () SourcePos
+-&gt; () -&gt; [Char] -&gt; [Char] -&gt; Either ParseError SourcePos
+forall s t u a.
+Stream s Identity t =&gt;
+Parsec s u a -&gt; u -&gt; [Char] -&gt; s -&gt; Either ParseError a
+</span><span class="hs-identifier hs-var">runParser</span></span><span> </span><span class="annot"><span class="annottext">Parsec [Char] () SourcePos
+forall u. ParsecT [Char] u Identity SourcePos
+</span><a href="#local-6989586621679044133"><span class="hs-identifier hs-var">sentencePos</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&lt;INPUT&gt;&quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679044143"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-49"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679044127"><span class="annot"><span class="annottext">SourcePos
+</span><a href="#local-6989586621679044127"><span class="hs-identifier hs-var">res</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">SourcePos
+</span><a href="#local-6989586621679044127"><span class="hs-identifier hs-var">res</span></a></span><span>
+</span><span id="line-50"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679044126"><span class="annot"><span class="annottext">ParseError
+</span><a href="#local-6989586621679044126"><span class="hs-identifier hs-var">err</span></a></span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; SourcePos
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;Parse error: &quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">ParseError -&gt; [Char]
+forall a. Show a =&gt; a -&gt; [Char]
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">ParseError
+</span><a href="#local-6989586621679044126"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>  </span><span id="local-6989586621679044134"><span class="annot"><span class="annottext">sPos :: [SourcePos]
+</span><a href="#local-6989586621679044134"><span class="hs-identifier hs-var hs-var">sPos</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(SourcePos -&gt; Char -&gt; SourcePos)
+-&gt; SourcePos -&gt; [Char] -&gt; [SourcePos]
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">scanl</span></span><span> </span><span class="annot"><span class="annottext">SourcePos -&gt; Char -&gt; SourcePos
+</span><span class="hs-identifier hs-var">updatePosChar</span></span><span> </span><span class="annot"><span class="annottext">SourcePos
+</span><a href="#local-6989586621679044144"><span class="hs-identifier hs-var">firstPos</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679044143"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-52"></span></pre></body></html>

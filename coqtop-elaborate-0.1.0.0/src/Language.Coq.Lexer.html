@@ -1,0 +1,416 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# OPTIONS_GHC -Wno-missing-signatures #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.Coq.Lexer</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Functor</span></span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Applicative</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">optional</span></span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Parsec.Language</span></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Parsec</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">many</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(&lt;|&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Text.Parsec.Token</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">P</span></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">type</span><span> </span><span id="P"><span class="annot"><a href="Language.Coq.Lexer.html#P"><span class="hs-identifier hs-var">P</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679044010"><span class="annot"><a href="#local-6989586621679044010"><span class="hs-identifier hs-type">st</span></a></span></span><span> </span><span class="hs-operator">.</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parsec</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="#local-6989586621679044010"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">type</span><span> </span><span id="Pc"><span class="annot"><a href="Language.Coq.Lexer.html#Pc"><span class="hs-identifier hs-var">Pc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679044009"><span class="annot"><a href="#local-6989586621679044009"><span class="hs-identifier hs-type">st</span></a></span></span><span> </span><span class="hs-operator">.</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parsec</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="#local-6989586621679044009"><span class="hs-identifier hs-type">st</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="annot"><a href="Language.Coq.Lexer.html#satisfyCat"><span class="hs-identifier hs-type">satisfyCat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">GeneralCategory</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#Pc"><span class="hs-identifier hs-type">Pc</span></a></span><span>
+</span><span id="line-19"></span><span id="satisfyCat"><span class="annot"><span class="annottext">satisfyCat :: [GeneralCategory] -&gt; Pc
+</span><a href="Language.Coq.Lexer.html#satisfyCat"><span class="hs-identifier hs-var hs-var">satisfyCat</span></a></span></span><span> </span><span id="local-6989586621679044007"><span class="annot"><span class="annottext">[GeneralCategory]
+</span><a href="#local-6989586621679044007"><span class="hs-identifier hs-var">cats</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; ParsecT String st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+(Char -&gt; Bool) -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">satisfy</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">GeneralCategory -&gt; [GeneralCategory] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="annot"><span class="annottext">[GeneralCategory]
+</span><a href="#local-6989586621679044007"><span class="hs-identifier hs-var">cats</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(GeneralCategory -&gt; Bool)
+-&gt; (Char -&gt; GeneralCategory) -&gt; Char -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; GeneralCategory
+</span><span class="hs-identifier hs-var">generalCategory</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="annot"><a href="Language.Coq.Lexer.html#satisfyRanges"><span class="hs-identifier hs-type">satisfyRanges</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#Pc"><span class="hs-identifier hs-type">Pc</span></a></span><span>
+</span><span id="line-22"></span><span id="satisfyRanges"><span class="annot"><span class="annottext">satisfyRanges :: [(Char, Char)] -&gt; Pc
+</span><a href="Language.Coq.Lexer.html#satisfyRanges"><span class="hs-identifier hs-var hs-var">satisfyRanges</span></a></span></span><span> </span><span id="local-6989586621679044001"><span class="annot"><span class="annottext">[(Char, Char)]
+</span><a href="#local-6989586621679044001"><span class="hs-identifier hs-var">rs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; ParsecT String st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+(Char -&gt; Bool) -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">satisfy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(((Char, Char) -&gt; Bool) -&gt; [(Char, Char)] -&gt; Bool)
+-&gt; [(Char, Char)] -&gt; ((Char, Char) -&gt; Bool) -&gt; Bool
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">((Char, Char) -&gt; Bool) -&gt; [(Char, Char)] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="annot"><span class="annottext">[(Char, Char)]
+</span><a href="#local-6989586621679044001"><span class="hs-identifier hs-var">rs</span></a></span><span> </span><span class="annot"><span class="annottext">(((Char, Char) -&gt; Bool) -&gt; Bool)
+-&gt; (Char -&gt; (Char, Char) -&gt; Bool) -&gt; Char -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; (Char, Char) -&gt; Bool
+forall a. Ord a =&gt; a -&gt; (a, a) -&gt; Bool
+</span><a href="#local-6989586621679043998"><span class="hs-identifier hs-var">inRange</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679043998"><span class="annot"><span class="annottext">inRange :: a -&gt; (a, a) -&gt; Bool
+</span><a href="#local-6989586621679043998"><span class="hs-identifier hs-var hs-var">inRange</span></a></span></span><span> </span><span id="local-6989586621679043997"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679043997"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679043996"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679043996"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679043995"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679043995"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679043996"><span class="hs-identifier hs-var">l</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679043997"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679043997"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;=</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679043995"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="annot"><a href="Language.Coq.Lexer.html#unicodeLetter"><span class="hs-identifier hs-type">unicodeLetter</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#Pc"><span class="hs-identifier hs-type">Pc</span></a></span><span>
+</span><span id="line-26"></span><span id="unicodeLetter"><span class="annot"><span class="annottext">unicodeLetter :: Parsec String st Char
+</span><a href="Language.Coq.Lexer.html#unicodeLetter"><span class="hs-identifier hs-var hs-var">unicodeLetter</span></a></span></span><span>
+</span><span id="line-27"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[GeneralCategory] -&gt; Pc
+</span><a href="Language.Coq.Lexer.html#satisfyCat"><span class="hs-identifier hs-var">satisfyCat</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">GeneralCategory
+</span><span class="hs-identifier hs-var">LowercaseLetter</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">GeneralCategory
+</span><span class="hs-identifier hs-var">UppercaseLetter</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">GeneralCategory
+</span><span class="hs-identifier hs-var">TitlecaseLetter</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">GeneralCategory
+</span><span class="hs-identifier hs-var">OtherLetter</span></span><span class="hs-special">]</span><span>
+</span><span id="line-28"></span><span>  </span><span class="annot"><span class="annottext">Parsec String st Char
+-&gt; Parsec String st Char -&gt; Parsec String st Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">[(Char, Char)] -&gt; Pc
+</span><a href="Language.Coq.Lexer.html#satisfyRanges"><span class="hs-identifier hs-var">satisfyRanges</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x1D00'</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x1D7F'</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x1D80'</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x1DBF'</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x1DC0'</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\x1DFF'</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-29"></span><span>  </span><span class="annot"><span class="annottext">Parsec String st Char
+-&gt; Parsec String st Char -&gt; Parsec String st Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Parsec String st Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">oneOf</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;_\x00A0&quot;</span></span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="annot"><a href="Language.Coq.Lexer.html#unicodeIdPart"><span class="hs-identifier hs-type">unicodeIdPart</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#Pc"><span class="hs-identifier hs-type">Pc</span></a></span><span>
+</span><span id="line-32"></span><span id="unicodeIdPart"><span class="annot"><span class="annottext">unicodeIdPart :: Parsec String st Char
+</span><a href="Language.Coq.Lexer.html#unicodeIdPart"><span class="hs-identifier hs-var hs-var">unicodeIdPart</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[GeneralCategory] -&gt; Pc
+</span><a href="Language.Coq.Lexer.html#satisfyCat"><span class="hs-identifier hs-var">satisfyCat</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">GeneralCategory
+</span><span class="hs-identifier hs-var">DecimalNumber</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">GeneralCategory
+</span><span class="hs-identifier hs-var">LetterNumber</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">GeneralCategory
+</span><span class="hs-identifier hs-var">OtherNumber</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Parsec String st Char
+-&gt; Parsec String st Char -&gt; Parsec String st Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Parsec String st Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+Char -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\''</span></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="annot"><a href="Language.Coq.Lexer.html#coqString"><span class="hs-identifier hs-type">coqString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#P"><span class="hs-identifier hs-type">P</span></a></span><span>
+</span><span id="line-35"></span><span id="coqString"><span class="annot"><span class="annottext">coqString :: Parsec String st ()
+</span><a href="Language.Coq.Lexer.html#coqString"><span class="hs-identifier hs-var hs-var">coqString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char -&gt; Parsec String st ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT String st Identity Char -&gt; ParsecT String st Identity Char
+forall u a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+</span><a href="Language.Coq.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; ParsecT String st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+Char -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char
+-&gt; ParsecT String st Identity [()]
+-&gt; ParsecT String st Identity Char
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">Parsec String st () -&gt; ParsecT String st Identity [()]
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
+</span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="annot"><span class="annottext">Parsec String st ()
+forall u. ParsecT String u Identity ()
+</span><a href="#local-6989586621679043975"><span class="hs-identifier hs-var">strPart</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char
+-&gt; ParsecT String st Identity Char
+-&gt; ParsecT String st Identity Char
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; ParsecT String st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+Char -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679043975"><span class="annot"><span class="annottext">strPart :: ParsecT String u Identity ()
+</span><a href="#local-6989586621679043975"><span class="hs-identifier hs-var hs-var">strPart</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity Char -&gt; ParsecT String u Identity ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; ParsecT String u Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+(Char -&gt; Bool) -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">satisfy</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&quot;'</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity ()
+-&gt; ParsecT String u Identity () -&gt; ParsecT String u Identity ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity String -&gt; ParsecT String u Identity ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT String u Identity String
+-&gt; ParsecT String u Identity String
+forall s u (m :: * -&gt; *) a. ParsecT s u m a -&gt; ParsecT s u m a
+</span><span class="hs-identifier hs-var">try</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity String
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m String
+</span><span class="hs-identifier hs-var">string</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\&quot;\&quot;&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="annot"><a href="Language.Coq.Lexer.html#coqInteger"><span class="hs-identifier hs-type">coqInteger</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#P"><span class="hs-identifier hs-type">P</span></a></span><span>
+</span><span id="line-39"></span><span id="coqInteger"><span class="annot"><span class="annottext">coqInteger :: Parsec String st ()
+</span><a href="Language.Coq.Lexer.html#coqInteger"><span class="hs-identifier hs-var hs-var">coqInteger</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity String -&gt; Parsec String st ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT String st Identity String
+-&gt; ParsecT String st Identity String
+forall u a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+</span><a href="Language.Coq.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT String st Identity Char
+-&gt; ParsecT String st Identity String
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
+</span><span class="hs-identifier hs-var">some</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char
+forall s (m :: * -&gt; *) u. Stream s m Char =&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">digit</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span id="local-6989586621679043968"><span class="annot"><a href="Language.Coq.Lexer.html#coqDef"><span class="hs-identifier hs-type">coqDef</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LanguageDef</span></span><span> </span><span class="annot"><a href="#local-6989586621679043968"><span class="hs-identifier hs-type">st</span></a></span></span><span>
+</span><span id="line-42"></span><span id="coqDef"><span class="annot"><span class="annottext">coqDef :: LanguageDef st
+</span><a href="Language.Coq.Lexer.html#coqDef"><span class="hs-identifier hs-var hs-var">coqDef</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LanguageDef st
+forall st. LanguageDef st
+</span><span class="hs-identifier hs-var">emptyDef</span></span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">commentStart :: String
+</span><span class="hs-identifier hs-var">P.commentStart</span></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;(*&quot;</span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">commentEnd :: String
+</span><span class="hs-identifier hs-var">P.commentEnd</span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;*)&quot;</span></span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">identStart :: ParsecT String st Identity Char
+</span><span class="hs-identifier hs-var">P.identStart</span></span><span>      </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char
+Pc
+</span><a href="Language.Coq.Lexer.html#unicodeLetter"><span class="hs-identifier hs-var">unicodeLetter</span></a></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">identLetter :: ParsecT String st Identity Char
+</span><span class="hs-identifier hs-var">P.identLetter</span></span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char
+Pc
+</span><a href="Language.Coq.Lexer.html#unicodeLetter"><span class="hs-identifier hs-var">unicodeLetter</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char
+-&gt; ParsecT String st Identity Char
+-&gt; ParsecT String st Identity Char
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char
+Pc
+</span><a href="Language.Coq.Lexer.html#unicodeIdPart"><span class="hs-identifier hs-var">unicodeIdPart</span></a></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">reservedOpNames :: [String]
+</span><span class="hs-identifier hs-var">P.reservedOpNames</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;:&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">reservedNames :: [String]
+</span><span class="hs-identifier hs-var">P.reservedNames</span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Fail&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Time&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Redirect&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Timeout&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="annot"><a href="Language.Coq.Lexer.html#bullets"><span class="hs-identifier hs-type">bullets</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Coq.Lexer.html#P"><span class="hs-identifier hs-type">P</span></a></span><span>
+</span><span id="line-52"></span><span id="bullets"><span class="annot"><span class="annottext">bullets :: Parsec String st ()
+</span><a href="Language.Coq.Lexer.html#bullets"><span class="hs-identifier hs-var hs-var">bullets</span></a></span></span><span>
+</span><span id="line-53"></span><span>    </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity String -&gt; Parsec String st ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT String st Identity String
+-&gt; ParsecT String st Identity String
+forall u a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+</span><a href="Language.Coq.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT String st Identity Char
+-&gt; ParsecT String st Identity String
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f [a]
+</span><span class="hs-identifier hs-var">some</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT String st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">oneOf</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;-+*&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>  </span><span class="annot"><span class="annottext">Parsec String st () -&gt; Parsec String st () -&gt; Parsec String st ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char -&gt; Parsec String st ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Parsec String st () -&gt; Parsec String st ()
+forall s (m :: * -&gt; *) t u a.
+Stream s m t =&gt;
+ParsecT s u m a -&gt; ParsecT s u m ()
+</span><span class="hs-identifier hs-var">optional</span></span><span> </span><span class="annot"><span class="annottext">Parsec String st ()
+forall u. ParsecT String u Identity ()
+</span><a href="#local-6989586621679043957"><span class="hs-identifier hs-var">sel</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec String st ()
+-&gt; ParsecT String st Identity Char
+-&gt; ParsecT String st Identity Char
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity Char -&gt; ParsecT String st Identity Char
+forall u a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+</span><a href="Language.Coq.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; ParsecT String st Identity Char
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+Char -&gt; ParsecT s u m Char
+</span><span class="hs-identifier hs-var">char</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'{'</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span>  </span><span class="annot"><span class="annottext">Parsec String st () -&gt; Parsec String st () -&gt; Parsec String st ()
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">ParsecT String st Identity String -&gt; Parsec String st ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT String st Identity String
+-&gt; ParsecT String st Identity String
+forall u a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+</span><a href="Language.Coq.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; ParsecT String st Identity String
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+String -&gt; ParsecT s u m String
+</span><span class="hs-identifier hs-var">string</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;}&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679043957"><span class="annot"><span class="annottext">sel :: ParsecT String u Identity ()
+</span><a href="#local-6989586621679043957"><span class="hs-identifier hs-var hs-var">sel</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity String
+-&gt; ParsecT String u Identity String
+forall u a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+</span><a href="Language.Coq.Lexer.html#brackets"><span class="hs-identifier hs-var">brackets</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity String
+forall u. ParsecT String u Identity String
+</span><a href="Language.Coq.Lexer.html#identifier"><span class="hs-identifier hs-var">identifier</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT String u Identity String
+-&gt; ParsecT String u Identity () -&gt; ParsecT String u Identity ()
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span><span class="hs-operator hs-var">*&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; ParsecT String u Identity ()
+forall u. String -&gt; ParsecT String u Identity ()
+</span><a href="Language.Coq.Lexer.html#reservedOp"><span class="hs-identifier hs-var">reservedOp</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;:&quot;</span></span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span class="annot"><span class="hs-identifier hs-type">P.TokenParser</span></span><span> </span><span class="hs-special">{</span><span id="commaSep1"><span id="commaSep"><span id="semiSep1"><span id="semiSep"><span id="dot"><span id="colon"><span id="comma"><span id="semi"><span id="squares"><span id="angles"><span id="braces"><span id="parens"><span id="whiteSpace"><span id="symbol"><span id="octal"><span id="hexadecimal"><span id="decimal"><span id="naturalOrFloat"><span id="float"><span id="integer"><span id="natural"><span id="stringLiteral"><span id="charLiteral"><span id="operator"><span id="reserved"><span id="reservedOp"><span id="identifier"><span id="brackets"><span id="lexeme"><span class="annot"><span class="annottext">ParsecT String u Identity Char
+ParsecT String u Identity Double
+ParsecT String u Identity Integer
+ParsecT String u Identity String
+ParsecT String u Identity (Either Integer Double)
+ParsecT String u Identity ()
+String -&gt; ParsecT String u Identity String
+String -&gt; ParsecT String u Identity ()
+forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity [a]
+commaSep1 :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity [a]
+commaSep :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity [a]
+semiSep1 :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity [a]
+semiSep :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity [a]
+dot :: ParsecT String u Identity String
+colon :: ParsecT String u Identity String
+comma :: ParsecT String u Identity String
+semi :: ParsecT String u Identity String
+squares :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+angles :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+braces :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+parens :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+whiteSpace :: ParsecT String u Identity ()
+symbol :: String -&gt; ParsecT String u Identity String
+octal :: ParsecT String u Identity Integer
+hexadecimal :: ParsecT String u Identity Integer
+decimal :: ParsecT String u Identity Integer
+naturalOrFloat :: ParsecT String u Identity (Either Integer Double)
+float :: ParsecT String u Identity Double
+integer :: ParsecT String u Identity Integer
+natural :: ParsecT String u Identity Integer
+stringLiteral :: ParsecT String u Identity String
+charLiteral :: ParsecT String u Identity Char
+operator :: ParsecT String u Identity String
+reserved :: String -&gt; ParsecT String u Identity ()
+identifier :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m String
+reserved :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; String -&gt; ParsecT s u m ()
+operator :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m String
+reservedOp :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; String -&gt; ParsecT s u m ()
+charLiteral :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m Char
+stringLiteral :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m String
+natural :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m Integer
+integer :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m Integer
+float :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m Double
+naturalOrFloat :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m (Either Integer Double)
+decimal :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m Integer
+hexadecimal :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m Integer
+octal :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m Integer
+symbol :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; String -&gt; ParsecT s u m String
+lexeme :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m a
+whiteSpace :: forall s u (m :: * -&gt; *). GenTokenParser s u m -&gt; ParsecT s u m ()
+parens :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m a
+braces :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m a
+angles :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m a
+brackets :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m a
+squares :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m a
+semi :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m String
+comma :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m String
+colon :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m String
+dot :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m -&gt; ParsecT s u m String
+semiSep :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m [a]
+semiSep1 :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m [a]
+commaSep :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m [a]
+commaSep1 :: forall s u (m :: * -&gt; *).
+GenTokenParser s u m
+-&gt; forall a. ParsecT s u m a -&gt; ParsecT s u m [a]
+reservedOp :: String -&gt; ParsecT String u Identity ()
+identifier :: ParsecT String u Identity String
+brackets :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+lexeme :: forall a.
+ParsecT String u Identity a -&gt; ParsecT String u Identity a
+</span><a href="Language.Coq.Lexer.html#commaSep1"><span class="hs-glyph hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">..</span></a></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenLanguageDef String u Identity
+-&gt; GenTokenParser String u Identity
+forall s (m :: * -&gt; *) u.
+Stream s m Char =&gt;
+GenLanguageDef s u m -&gt; GenTokenParser s u m
+</span><span class="hs-identifier hs-var">P.makeTokenParser</span></span><span> </span><span class="annot"><span class="annottext">GenLanguageDef String u Identity
+forall st. LanguageDef st
+</span><a href="Language.Coq.Lexer.html#coqDef"><span class="hs-identifier hs-var">coqDef</span></a></span><span>
+</span><span id="line-59"></span></pre></body></html>
