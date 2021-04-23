@@ -21,9 +21,8 @@ vernacControl
   <|> reserved "Timeout" <* coqInteger
 
 coqSentence :: P
-coqSentence
-    = optional vernacControl *> bullets
-  <|> some (lexeme sentencePart) `sepBy1` semi *> endOfSentence
+coqSentence = optional vernacControl
+  *> (bullets <|> some (lexeme sentencePart) `sepBy1` semi *> endOfSentence)
 
 sentencePart :: P
 sentencePart
@@ -46,5 +45,7 @@ breakSentence (firstPos, s) = (this, (finalPos, rest)) where
     = setPosition firstPos *> whiteSpace
     *> optional coqSentence *> optional newline
     *> getPosition
-  ~(Right finalPos) = runParser sentencePos () "<INPUT>" s
+  finalPos = case runParser sentencePos () "<INPUT>" s of
+    Right res -> res
+    Left err  -> error ("Parse error: " ++ show err)
   sPos = scanl updatePosChar firstPos s
